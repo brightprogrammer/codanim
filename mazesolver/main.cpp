@@ -318,7 +318,7 @@ int main() {
     // update maze representation according to maze data
     updateMaze(maze, mazeData);
 
-    window.setFramerateLimit(120);
+    window.setFramerateLimit(60);
 
     bool movable = true;
     sf::Time pauseTime = sf::seconds(5);
@@ -353,4 +353,4 @@ int main() {
     }
 
     return 0;
-}
+ }

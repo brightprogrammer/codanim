@@ -11,4 +11,4 @@ like simulations! They are just AAAAAMAZINGGG!
 Some videos related to this : 
 - [Having Fun With Maze Solver Algorithm Taught In College!!](https://www.youtube.com/watch?v=X6AOGzkDQaM)  
 - [Playing With Maze Solving Algorithm | Slowed Version | Different Maze Sizes](https://youtu.be/FkphLm1Vf6c)  
-Explanation : 
+Explanation : [MazeSolver](mazesolver/MazeSolver.md)

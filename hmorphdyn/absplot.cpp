@@ -11,7 +11,7 @@
 
 #include "configvars.hpp"
 #include "typedefs.hpp"
-#include "complex.hpp"
+#include "activations.hpp"
 #include "color.hpp"
 #include "math.hpp"
 #include <ctime>
@@ -23,11 +23,13 @@
 using namespace sf;
 using namespace std;
 
+static const float PI = 2.f*asin(1);
+
 u32 currIter;
 Real e = exp(1);
 Real range = 2;
 Real zoom = 0.4;
-void genColorMap(ZMap& Z, Image& img, Real zmax){
+void genColorMap(ZMap& Z, Image& img){
     const u64 xsz = Z.size();
     const u64 ysz = Z[0].size();
 
@@ -36,7 +38,10 @@ void genColorMap(ZMap& Z, Image& img, Real zmax){
 
     for(u64 i = 0; i < xsz; i++){
         for(u64 j = 0; j < ysz; j++){
-            Real modz = Z[i][j].mod();
+            Z[i][j] = exp(Z[i][j])*Complex(1/e, 2);
+            // Z[i][j] = pow(Z[i][j],10) + Complex(-0.5, 0.5);
+            // Z[i][j] = sin(pow(Z[i][j],2) + Complex(-2/e, 1/(e*e)));
+            Real modz = abs(Z[i][j]);
 
             // double m = currIter + 1 - log(log2(modz));
             // double freqX = 0.2, freqY = 0.2, freqZ = 0.2;
@@ -55,48 +60,37 @@ void genColorMap(ZMap& Z, Image& img, Real zmax){
             // get lerped color
             // Color c = lerpHSV(a, b, modz/zmax);
 
-            Color base = img.getPixel(i, j);
-            float factor = 0.4;
-            base.r *= factor;
-            base.g *= factor;
-            base.b *= factor;
-            base.a *= factor;
+            // Color base = img.getPixel(i, j);
+            // float factor = 0.0;
+            // base.r *= factor;
+            // base.g *= factor;
+            // base.b *= factor;
+            // base.a *= factor;
 
-            // float t = fabs(sin(modz));
-            float t = modz/zmax;
+            float t = fabs(sin(modz));
+            // float t = modz/zmax;
+            // float t = (sigmoid(modz/1e2)-0.5)*2;
+            // float t = 1 - tanh(modz)*tanh(modz);
 
-            Color smallPointColor = Color(0, t*255, t*255);
-            Color largePointColor = Color(255-t*255, 255-t*255, 255-t*255);
-            // Color largePointColor = Color::Transparent;
-
-            // Color c = smallPointColor;
-            // cout << "Color {r = " << (int)c.r << ", g = " << (int)c.g << ", b = " << (int)c.b << "}"<< endl;
-            // c = largePointColor;
-            // cout << "Color {r = " << (int)c.r << ", g = " << (int)c.g << ", b = " << (int)c.b << "}"<< endl;
-
-            Color col = base + lerpHSV(BEGIN_COLOR_HSV, END_COLOR_HSV, t);
+            Color col = lerpHSV(BEGIN_COLOR_HSV, END_COLOR_HSV, t);
+            // Color col = base + lerpHSV(BEGIN_COLOR_HSV, END_COLOR_HSV, t);
             // Color col = base + lerpRGB(BEGIN_COLOR, END_COLOR, t);
-
-            // Color col = base;
-            // if(t > 0.01){
-            //     col += largePointColor;
-            // }else{
-            //     col += smallPointColor;
-            // }
+            // Color c = col;
+            // cout << "zmax=" << zmax << "\tColor {r = " << (int)c.r << ", g = " << (int)c.g << ", b = " << (int)c.b << "}"<< endl;
 
             img.setPixel(i, j, col);
         }
     }
 }
 
-static float PI = 2*asin(1);
 void drawPolarAxis(RenderWindow& window){
     const float angleStep = 30;
     const u32 numLines = 360.0 / angleStep;
 
-    RectangleShape line(Vector2f(WINDOW_WIDTH, 0.1));
+    RectangleShape line(Vector2f(WINDOW_WIDTH, 1));
     line.setPosition(WINDOW_WIDTH/2.f, WINDOW_HEIGHT/2.f);
     line.setFillColor(AXIS_COLOR);
+    line.setOutlineColor(Color::Transparent);
     line.setOutlineThickness(AXIS_THICKNESS);
 
     for(u32 i = 0; i < numLines; i++){
@@ -113,7 +107,7 @@ void drawPolarAxis(RenderWindow& window){
     contour.setPointCount(100);
 
     static const Real sqrt2 = sqrt(2);
-    static const u32 numContours = sqrt2*AXIS_RANGE; //
+    static const u32 numContours = 2*AXIS_RANGE; //
     for(u32 i = 0; i < numContours; i++){
         contour.setRadius(radius*i);
         contour.setPosition(WINDOW_WIDTH/2-radius*i, WINDOW_HEIGHT/2-radius*i);
@@ -130,27 +124,32 @@ int main() {
 
     // render window
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Holomorphic Dynamics", windowStyle);
-    // window.setFramerateLimit(10);
+    if(LIMIT_FRAMERATE) window.setFramerateLimit(FRAMERATE_LIMIT);
+    window.setPosition(Vector2i(10,50));
 
     // create X and Y axis
     const double aspectRatio = float(IMAGE_WIDTH)/float(IMAGE_HEIGHT);
 
     // initialize axis
     Axis X(IMAGE_WIDTH), Y(IMAGE_HEIGHT);
-    linspace(Y, -AXIS_RANGE*aspectRatio, AXIS_RANGE*aspectRatio);
-    linspace(X, -AXIS_RANGE, AXIS_RANGE);
+    linspace(X, -AXIS_RANGE*aspectRatio, AXIS_RANGE*aspectRatio);
+    linspace(Y, -AXIS_RANGE, AXIS_RANGE);
 
     // create zmap
     ZMap Z;
     createZMap(Z, X, Y, identityMap);
-    Real zmax = zpow(Z, 2, {0, 0});
+    // Complex c(-0.833333, 0.0416667);
+    // Real zmax = zpow(Z, 2, c);
+    Real c = 1;
+    // Real zmax = lambdaExponential(Z, X, Y, Complex(1/c, 0));
+    // Real zmax = cosMap(Z, c);
     // Real zmax = mandelbrot(Z, X, Y);
     // zmax = mandelbrot(Z, X, Y);
 
     // initialize image for display
     Image colormap;
     colormap.create(X.size(), Y.size());
-    genColorMap(Z, colormap, zmax);
+    genColorMap(Z, colormap);
     if(SAVE_IMAGES) colormap.saveToFile(BASE_IMAGE_NAME + "0.png");
 
     Texture colortex;
@@ -175,11 +174,14 @@ int main() {
         }
 
         if(currIter < MAX_ITERS){
-            window.clear(sf::Color::Black);
+            // window.clear(sf::Color::Black);
 
             // zmax = mandelbrot(Z, X, Y);
-            zmax = zpow(Z, 2, {0, 0});
-            genColorMap(Z, colormap, zmax);
+            // lambdaExponential(Z, X, Y, Complex(1/c, 0));
+            // zmax = cosMap(Z, c);
+            // zmax = zpow(Z, 2, c);
+
+            genColorMap(Z, colormap);
             if(SAVE_IMAGES) colormap.saveToFile(BASE_IMAGE_NAME + std::to_string(currIter) + ".png");
 
             colortex.update(colormap);
@@ -194,6 +196,9 @@ int main() {
             std::cout << currIter << std::endl;
         }
     }
+
+    // genColorMap(Z, colormap);
+    colormap.saveToFile("final.png");
 
     return 0;
  }

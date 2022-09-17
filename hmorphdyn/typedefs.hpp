@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 #include <vector>
+#include <complex>
+
+#include <SFML/Graphics.hpp>
 
 typedef uint64_t u64;
 typedef uint32_t u32;
@@ -14,11 +17,13 @@ typedef int16_t i16;
 typedef int8_t  i8;
 
 typedef float Real;
-typedef struct Complex Complex;
+typedef std::complex<Real> Complex;
 
 typedef std::vector<Real> Axis;
 typedef std::vector<std::vector<Complex>> ZMap;
 
+typedef sf::CircleShape Point;
+typedef std::vector<std::vector<Point>> PointMap;
 
 typedef struct RGBColor RGBColor;
 typedef RGBColor* ColorMap;

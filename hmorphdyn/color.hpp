@@ -104,7 +104,7 @@ double lerp(float a, float b, float t){
 Color lerpHSV(HSVColor a, HSVColor b, double t){
     if(t > 1 || t < 0) std::cerr << "WARNING[lerpHSV] : value of t is outside range! t=" << t << "\n";
 
-    // Hue interpolation
+    // // Hue interpolation
     // double h;
     // double d = b.H - a.H;
 
@@ -124,15 +124,15 @@ Color lerpHSV(HSVColor a, HSVColor b, double t){
     // } else h = lerp(a.H, b.H, t);
 
 
-    // HSVColor lerpedhsv = { h*360.f, lerp(a.S, b.S, t), lerp(a.V, b.V, t) };
+    // HSVColor lerpedhsv = {h*360.f, lerp(a.S, b.S, t), lerp(a.V, b.V, t)};
     // Color c = HSVtoRGB(lerpedhsv);
     // cout << "Color {r = " << (int)c.r << ", g = " << (int)c.g << ", b = " << (int)c.b << "}"<< endl;
 
     HSVColor c;
     c.H = a.H + (b.H-a.H)*t;
     c.S = 1; c.V = 1;
-    // c.H = a.S + (b.S-a.S)*t;
-    // c.H = a.V + (b.V-a.V)*t;
+    // // c.H = a.S + (b.S-a.S)*t;
+    // // c.H = a.V + (b.V-a.V)*t;
 
     return HSVtoRGB(c);
 }

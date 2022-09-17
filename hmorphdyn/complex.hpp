@@ -10,6 +10,8 @@ struct Complex {
     Real x = 0;
     Real y = 0;
 
+    Complex(Real x = 0, Real y = 0) : x(x), y(y){}
+
     // conjugate
     Complex conjugate() const{
         return {x, -y};
@@ -79,5 +81,18 @@ inline Complex exp(const Complex& z) {
     return w;
 }
 
+inline Complex sin(const Complex& z){
+    Complex w = exp(z) - exp(Complex(0, -1)*z);
+    w = w / Complex{0,2};
+
+    return w;
+}
+
+inline Complex cos(const Complex& z){
+    Complex w = exp(z) + exp(Complex(0, -1)*z);
+    w = w / Complex(2, 0);
+
+    return w;
+}
 
 #endif // COMPLEX_H_

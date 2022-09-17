@@ -10,7 +10,6 @@
 
 #include "typedefs.hpp"
 #include "configvars.hpp"
-#include "complex.hpp"
 
 using namespace std;
 using namespace sf;
@@ -26,11 +25,11 @@ void linspace(Axis& a, Real start, Real stop){
 }
 
 Complex identityMap(Real x, Real y){
-    return {x, y};
+    return Complex(x, y);
 }
 
 Complex zeroMap(Real x, Real y){
-    return {0, 0};
+    return Complex(0, 0);
 }
 
 /**
@@ -79,24 +78,17 @@ void createZMap(ZMap& Z, const Axis& X, const Axis& Y, Complex (*map)(Real x, Re
  * @brief[out] Z ZMap to apply the mandelbrot map on.
  * @brief[in] X X axis values.
  * @brief[in] Y Y axis values.
- * @return Maximum value of mod(z) in the new Z map.
  * */
-inline Real mandelbrot(ZMap& Z, const Axis& X, const Axis& Y, Real zoom = 0.4){
+inline void mandelbrot(ZMap& Z, const Axis& X, const Axis& Y, Real zoom = 0.8){
     u64 xsz = X.size();
     u64 ysz = Y.size();
 
     // update Z grid
-    double maxz  = 0;
     for(u64 i = 0; i < xsz; i++){
         for(u64 j = 0; j < ysz; j++){
             Z[i][j] = pow(Z[i][j], 2) + Complex{(X[i])/(zoom*AXIS_RANGE), (Y[j])/(zoom*AXIS_RANGE)};
-
-            // find max
-            if(Z[i][j].mod() > maxz) maxz = Z[i][j].mod();
         }
     }
-
-    return maxz;
 }
 
 /**
@@ -105,26 +97,61 @@ inline Real mandelbrot(ZMap& Z, const Axis& X, const Axis& Y, Real zoom = 0.4){
  * @brief[out] Z Zmap to apply the zpow map upon.
  * @brief[in] n Power by which each z in Z will be raised to.
  * @brief[in] c Complex value to be added to z^n.
- * @return Maximum value of mod(z) in the new Z map.
  * */
-inline Real zpow(ZMap& Z, u64 n, const Complex& c){
+inline void pow(ZMap& Z, u64 n, const Complex& c){
     u64 xsz = Z.size();
     u64 ysz = Z[0].size();
 
-    assert((Z.size() == xsz) && "Please initialize ZMap properly!");
-
     // update Z grid
-    double maxz  = 0;
     for(u64 i = 0; i < xsz; i++){
-        assert((Z[i].size() == ysz) && "Please initialize ZMap properly!");
         for(u64 j = 0; j < ysz; j++){
-            Z[i][j] = pow(Z[i][j], n) + c;
-
-            // find max
-            if(Z[i][j].mod() > maxz) maxz = Z[i][j].mod();
+            Z[i][j] = std::pow(Z[i][j], n) + static_cast<complex<double>>(c);
         }
     }
-
-    return maxz;
 }
+
+/**
+ * Apply (Z^n + c) map to Z map.
+ *
+ * @brief[out] Z Zmap to apply the zpow map upon.
+ * @brief[in] n Power by which each z in Z will be raised to.
+ * @brief[in] c Complex value to be added to z^n.
+ * */
+inline void exp(ZMap& Z, const Complex& c){
+    u64 xsz = Z.size();
+    u64 ysz = Z[0].size();
+
+    // update Z grid
+    for(u64 i = 0; i < xsz; i++){
+        for(u64 j = 0; j < ysz; j++){
+            Z[i][j] = exp(Z[i][j])*c;
+        }
+    }
+}
+
+inline void cos(ZMap& Z, const Complex& c){
+    u64 xsz = Z.size();
+    u64 ysz = Z[0].size();
+
+    // update Z grid
+    for(u64 i = 0; i < xsz; i++){
+        for(u64 j = 0; j < ysz; j++){
+            Z[i][j] = cos(pow(Z[i][j], 2) + c);
+        }
+    }
+}
+
+inline void sin(ZMap& Z, const Complex& c){
+    u64 xsz = Z.size();
+    u64 ysz = Z[0].size();
+
+    // update Z grid
+    for(u64 i = 0; i < xsz; i++){
+        for(u64 j = 0; j < ysz; j++){
+            Z[i][j] = cos(pow(Z[i][j], 2) + c);
+        }
+    }
+}
+
+
 #endif // MATH_H_
